@@ -1,0 +1,23 @@
+{
+    "name": "volleyball-tracker",
+    "version": "1.0.0",
+    "description": "Playwright tests for a volleyball rotation tracker.",
+    "main": "index.js",
+    "scripts": {
+        "serve": "http-server -p 3000 --cors",
+        "test": "npx playwright test",
+        "test:ui": "npx playwright test --ui",
+        "report": "npx playwright show-report"
+    },
+    "keywords": [
+        "volleyball",
+        "playwright",
+        "test"
+    ],
+    "author": "",
+    "license": "ISC",
+    "devDependencies": {
+        "@playwright/test": "^1.45.3",
+        "http-server": "^14.1.1"
+    }
+}

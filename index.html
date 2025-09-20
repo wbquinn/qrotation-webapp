@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  
+    <!-- Inlined Manifest as Script -->
+    <script type="application/manifest+json" id="manifest">
+    {
+      "name": "QRotation - Volleyball Rotation Tracker",
+      "short_name": "QRotation",
+      "display": "fullscreen",
+      "orientation": "landscape",
+      "start_url": "/",
+      "theme_color": "#000000",
+      "background_color": "#ffffff",
+      "icons": [
+        {
+          "src": "/icon-192x192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
+    </script>
+    
+    <!-- Create manifest link dynamically -->
+    <script>
+      const manifestContent = document.getElementById('manifest').textContent;
+      const manifestBlob = new Blob([manifestContent], {type: 'application/json'});
+      const manifestURL = URL.createObjectURL(manifestBlob);
+      const link = document.createElement('link');
+      link.rel = 'manifest';
+      link.href = manifestURL;
+      document.head.appendChild(link);
+    </script>
+    
+    <!-- iOS and Android Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Your App Name">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#000000">
+    
+    <!-- Icons -->
+    <link rel="apple-touch-icon" href="/icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192x192.png">
+      <title>Volleyball Rotation Tracker</title>
+    <style>
+        /* General Styles */
+        :root {
+            --primary-color: #005A9C;
+            --secondary-color: #FDBB30;
+            --background-color: #f4f7f6;
+            --text-color: #333;
+            --light-gray: #e0e0e0;
+            --white: #ffffff;
+            --red: #D80027;
+            --dark-red: #8B0000;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            -webkit-user-select: none; /* Safari */
+            -ms-user-select: none; /* IE 10+ */
+            user-select: none;
+        }
+
+        .hidden { display: none !important; }
+
+        .container {
+            max-width: 1000px;
+            margin: auto;
+            background: var(--white);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        h2 {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--light-gray);
+            padding-bottom: 10px;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: var(--white);
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.2s;
+        }
+        button:hover { background-color: #004a80; }
+        button:disabled {
+            background-color: #a0a0a0;
+            cursor: not-allowed;
+        }
+        .btn-secondary { background-color: #6c757d; }
+        .btn-secondary:hover { background-color: #5a6268; }
+        .btn-success { background-color: #28a745; }
+        .btn-success:hover { background-color: #218838; }
+        .btn-danger { background-color: var(--red); }
+        .btn-danger:hover { background-color: #c82333; }
+
+
+        /* Player Setup View */
+        .view-section { padding: 15px; }
+        #player-list {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .player-item {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+            padding: 15px;
+            background-color: var(--background-color);
+            border-radius: 5px;
+            border-left: 5px solid var(--primary-color);
+        }
+        .player-info { flex-grow: 1; }
+        .player-info span { display: inline-block; margin-right: 15px; font-size: 1.1em; }
+        .player-info .player-number {
+            font-weight: bold;
+            background-color: var(--primary-color);
+            color: var(--white);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            text-align: center;
+            line-height: 30px;
+        }
+        .player-info .player-role { font-style: italic; color: #555; }
+        select {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid var(--light-gray);
+            font-size: 1em;
+        }
+        #start-set-controls, #history-controls { margin-top: 20px; }
+
+
+        /* Active Set View */
+        #score-board {
+            display: flex;
+            justify-content: space-between;
+            align-items: stretch; /* Make boxes equal height */
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: flex-direction 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .score-container { 
+            /* This container now just defines the width */
+            width: 15%;
+            position: relative;
+        }
+
+        .score {
+            display: flex;
+            flex-direction: column;   /* Stack the score value and label vertically */
+            align-items: center;      /* Center-align the content */
+            justify-content: space-between; /* Push content to top and bottom edges */
+            height: 100%;
+            box-sizing: border-box;
+            padding: 0.5vh 15px;
+            font-weight: bold;
+            background-color: var(--text-color);
+            color: var(--white);
+            border-radius: 8px;
+            transition: background-color 0.2s ease;
+            position: relative;
+        }
+
+        #their-score { 
+            background-color: #444444; 
+            transform: scale(0.91); 
+            transform-origin: center right;
+        }
+
+        .score-value {
+            font-size: 11vh; /* Large, responsive font for the number */
+            line-height: 1;
+        }
+
+        .score-label { 
+            font-size: 1.8vh; /* Smaller, responsive font for the label */
+            font-weight: normal;
+            color: rgba(255, 255, 255, 0.7); /* Make it slightly transparent */
+            margin-bottom: 0.5vh;
+        }
+
+        /* Score adjustment buttons */
+        .score-adjust-btn {
+            position: absolute;
+            bottom: 8px;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            font-size: 16px;
+            font-weight: bold;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(255, 255, 255, 0.9);
+            color: var(--text-color);
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            z-index: 10;
+        }
+
+        .score-adjust-btn:hover {
+            background-color: var(--white);
+            transform: scale(1.1);
+        }
+
+        .score-adjust-btn.decrement {
+            left: 8px;
+        }
+
+        .score-adjust-btn.increment {
+            right: 8px;
+        }
+
+        .match-point { 
+            background-color: var(--dark-red) !important; 
+        }
+        #court-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: 1fr 1fr;
+            grid-template-areas: "pos-IV pos-III pos-II" "pos-V  pos-VI  pos-I";
+            gap: 10px;
+            height: 60vh;
+            border: 3px solid var(--primary-color);
+            border-radius: 8px;
+            padding: 10px;
+            background-color: #eaf2f8;
+        }
+        .court-position {
+            background-color: var(--white);
+            border: 2px solid var(--light-gray);
+            border-radius: 5px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+            position: relative;
+        }
+        .court-position::before {
+            content: attr(data-pos);
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            font-weight: bold;
+            color: var(--light-gray);
+            font-size: 1.5em;
+        }
+        #pos-I { grid-area: pos-I; border-color: var(--secondary-color); border-width: 4px;}
+        #pos-II { grid-area: pos-II; }
+        #pos-III { grid-area: pos-III; }
+        #pos-IV { grid-area: pos-IV; }
+        #pos-V { grid-area: pos-V; }
+        #pos-VI { grid-area: pos-VI; }
+
+        .pos-player-number { font-size: 11vh; font-weight: bold; color: var(--primary-color); }
+        .pos-player-details { font-size: 2.5vh; color: #555; margin-top: 5px; }
+
+        #point-controls {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+        #point-controls button { padding: 15px 30px; font-size: 1.2em; width: 200px; }
+
+        /* History View */
+        #completed-sets-list {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .completed-set-item {
+            padding: 15px;
+            background: var(--background-color);
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .completed-set-item:hover { background-color: #e0e5e9; }
+        .set-score { font-size: 1.2em; font-weight: bold; }
+        .set-score.win { color: #28a745; }
+        .set-score.loss { color: var(--red); }
+        .set-time { color: #555; }
+
+
+        /* Modal */
+        .modal {
+            position: fixed; z-index: 1000; left: 0; top: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            display: flex; justify-content: center; align-items: center;
+        }
+        .modal-content {
+            background-color: var(--white);
+            padding: 30px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .modal-content h3 { margin-top: 0; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-group input, .form-group select {
+            width: 100%; padding: 10px; box-sizing: border-box;
+            border-radius: 4px; border: 1px solid var(--light-gray);
+        }
+        .modal-actions {
+            margin-top: 20px; text-align: right;
+            display: flex; gap: 10px; justify-content: flex-end;
+        }
+        #rotation-popup-list { list-style: none; padding: 0; font-size: 1.1em; }
+        #rotation-popup-list li {
+            padding: 8px;
+            border-bottom: 1px solid var(--light-gray);
+        }
+        #rotation-popup-list li:last-child { border-bottom: none; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div id="player-setup-view" class="view-section">
+            <h2>🏐 Player Roster & Starting Lineup</h2>
+            <div id="player-list"></div>
+            <button id="add-player-btn">Add Player</button>
+            <div id="start-set-controls" class="hidden">
+                <hr style="margin: 20px 0;">
+                <h3>Ready to Start!</h3>
+                <button id="start-serving-btn" class="btn-success">Start Set (We Serve First)</button>
+                <button id="start-receiving-btn" class="btn-secondary">Start Set (We Receive First)</button>
+            </div>
+            <div id="history-controls">
+                <hr style="margin: 20px 0;">
+                <button id="view-history-btn" class="btn-secondary">View Set History</button>
+            </div>
+        </div>
+
+        <div id="active-set-view" class="view-section hidden">
+            <div id="score-board">
+                <div id="their-score-container" class="score-container">
+                    <div id="their-score" class="score">
+                        <span class="score-value">0</span>
+                        <span class="score-label">THEM</span>
+                        <button class="score-adjust-btn decrement" data-target="their" data-action="decrement">-</button>
+                        <button class="score-adjust-btn increment" data-target="their" data-action="increment">+</button>
+                    </div>
+                </div>
+            
+                <button id="end-set-btn" class="btn-danger">End Set</button>
+                
+                <div id="our-score-container" class="score-container">
+                    <div id="our-score" class="score">
+                        <span class="score-value">0</span>
+                        <span class="score-label">US</span>
+                        <button class="score-adjust-btn decrement" data-target="our" data-action="decrement">-</button>
+                        <button class="score-adjust-btn increment" data-target="our" data-action="increment">+</button>
+                    </div>
+                </div>
+            </div>
+            <div id="court-grid">
+                <div id="pos-IV" class="court-position" data-pos="IV"></div>
+                <div id="pos-III" class="court-position" data-pos="III"></div>
+                <div id="pos-II" class="court-position" data-pos="II"></div>
+                <div id="pos-V" class="court-position" data-pos="V"></div>
+                <div id="pos-VI" class="court-position" data-pos="VI"></div>
+                <div id="pos-I" class="court-position" data-pos="I"></div>
+            </div>
+            <div id="point-controls">
+                <button id="point-won-btn" class="btn-success">Point Won</button>
+                <button id="point-lost-btn" class="btn-danger">Point Lost</button>
+            </div>
+        </div>
+        
+        <div id="history-view" class="view-section hidden">
+            <h2>📜 Set History</h2>
+            <div id="completed-sets-list"></div>
+            <button id="back-to-roster-btn">Back to Roster</button>
+        </div>
+
+    </div>
+
+    <div id="player-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3 id="modal-title">Add New Player</h3>
+            <input type="hidden" id="player-id">
+            <div class="form-group"><label for="player-name">Name</label><input type="text" id="player-name" placeholder="e.g., Jane Doe"></div>
+            <div class="form-group"><label for="player-number">Number</label><input type="number" id="player-number" placeholder="e.g., 7"></div>
+            <div class="form-group"><label for="player-role">Role</label><select id="player-role"><option value="Setter">Setter</option><option value="Outside">Outside Hitter</option><option value="Middle">Middle Blocker</option><option value="Opposite">Opposite Hitter</option><option value="Libero">Libero</option></select></div>
+            <div class="modal-actions"><button id="cancel-player-btn" class="btn-secondary">Cancel</button><button id="save-player-btn">Save Player</button></div>
+        </div>
+    </div>
+    
+    <div id="rotation-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3>Starting Rotation</h3>
+            <ul id="rotation-popup-list"></ul>
+            <div class="modal-actions"><button id="close-rotation-popup-btn" class="btn-secondary">Close</button></div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- STATE MANAGEMENT ---
+            let players = [];
+            let completedSets = [];
+            let ourScore = 0, theirScore = 0;
+            let isServing = false;
+            let currentRotation = {}, activeSetStartTime = null, activeSetStartingRotation = {};
+
+            // --- DOM ELEMENTS ---
+            const views = {
+                setup: document.getElementById('player-setup-view'),
+                active: document.getElementById('active-set-view'),
+                history: document.getElementById('history-view')
+            };
+            const playerList = document.getElementById('player-list');
+            const addPlayerBtn = document.getElementById('add-player-btn');
+            const startSetControls = document.getElementById('start-set-controls');
+            const startServingBtn = document.getElementById('start-serving-btn');
+            const startReceivingBtn = document.getElementById('start-receiving-btn');
+            
+            const scoreBoard = document.getElementById('score-board');
+            const ourScoreEl = document.getElementById('our-score');
+            const theirScoreEl = document.getElementById('their-score');
+            const pointWonBtn = document.getElementById('point-won-btn');
+            const pointLostBtn = document.getElementById('point-lost-btn');
+            const endSetBtn = document.getElementById('end-set-btn');
+
+            const viewHistoryBtn = document.getElementById('view-history-btn');
+            const backToRosterBtn = document.getElementById('back-to-roster-btn');
+            const completedSetsList = document.getElementById('completed-sets-list');
+
+            const playerModal = document.getElementById('player-modal');
+            const rotationModal = document.getElementById('rotation-modal');
+
+            // --- FUNCTIONS ---
+
+            const saveState = () => {
+                const state = {
+                    players, completedSets, ourScore, theirScore, isServing,
+                    currentRotation, activeSetStartTime, activeSetStartingRotation,
+                    currentView: Object.keys(views).find(key => !views[key].classList.contains('hidden')),
+                    scoreBoardDirection: scoreBoard.style.flexDirection || 'row'
+                };
+                localStorage.setItem('volleyballTrackerState', JSON.stringify(state));
+            };
+            
+            const loadState = () => {
+                const savedState = localStorage.getItem('volleyballTrackerState');
+                if (savedState) {
+                    const state = JSON.parse(savedState);
+                    players = state.players || [];
+                    completedSets = state.completedSets || [];
+                    ourScore = state.ourScore || 0;
+                    theirScore = state.theirScore || 0;
+                    isServing = state.isServing || false;
+                    currentRotation = state.currentRotation || {};
+                    activeSetStartTime = state.activeSetStartTime || null;
+                    activeSetStartingRotation = state.activeSetStartingRotation || {};
+                    scoreBoard.style.flexDirection = state.scoreBoardDirection || 'row';
+
+                    renderPlayerList();
+                    showView(state.currentView || 'setup');
+                    if (state.currentView === 'active') renderCourtView();
+                } else {
+                    renderPlayerList();
+                    showView('setup');
+                }
+            };
+
+            const showView = (viewKey) => {
+                for (const key in views) {
+                    views[key].classList.toggle('hidden', key !== viewKey);
+                }
+                if (viewKey === 'history') renderHistoryView();
+            };
+
+            const renderPlayerList = () => {
+                playerList.innerHTML = '';
+                players.forEach(player => {
+                    playerList.insertAdjacentHTML('beforeend', `
+                        <div class="player-item">
+                            <div class="player-info">
+                                <span class="player-number">${player.number}</span>
+                                <span class="player-name">${player.name}</span>
+                                <span class="player-role">${player.role}</span>
+                            </div>
+                            <select class="position-select" data-id="${player.id}">
+                                <option value="sub" ${player.position === 'sub' ? 'selected' : ''}>Sub</option>
+                                <option value="libero" ${player.position === 'libero' ? 'selected' : ''}>Libero</option>
+                                <option value="I" ${player.position === 'I' ? 'selected' : ''}>I (Server)</option>
+                                <option value="II" ${player.position === 'II' ? 'selected' : ''}>II (Front Right)</option>
+                                <option value="III" ${player.position === 'III' ? 'selected' : ''}>III (Front Middle)</option>
+                                <option value="IV" ${player.position === 'IV' ? 'selected' : ''}>IV (Front Left)</option>
+                                <option value="V" ${player.position === 'V' ? 'selected' : ''}>V (Back Left)</option>
+                                <option value="VI" ${player.position === 'VI' ? 'selected' : ''}>VI (Back Middle)</option>
+                            </select>
+                            <button class="edit-player-btn" data-id="${player.id}">Edit</button>
+                        </div>
+                    `);
+                });
+                checkStartPositionValidity();
+            };
+
+            const checkStartPositionValidity = () => {
+                const assigned = new Set(players.map(p => p.position));
+                const required = ['I', 'II', 'III', 'IV', 'V', 'VI'];
+                startSetControls.classList.toggle('hidden', !required.every(pos => assigned.has(pos)));
+            };
+
+            const openModal = (modalEl, setupFn) => {
+                if (setupFn) setupFn();
+                modalEl.classList.remove('hidden');
+            };
+            const closeModal = (modalEl) => modalEl.classList.add('hidden');
+
+            const savePlayer = () => {
+                const id = document.getElementById('player-id').value;
+                const name = document.getElementById('player-name').value.trim();
+                const number = document.getElementById('player-number').value;
+                const role = document.getElementById('player-role').value;
+                if (!name || !number) { alert('Player name and number are required.'); return; }
+                if (id) {
+                    Object.assign(players.find(p => p.id == id), { name, number, role });
+                } else {
+                    players.push({ id: Date.now(), name, number, role, position: 'sub' });
+                }
+                renderPlayerList();
+                saveState();
+                closeModal(playerModal);
+            };
+
+            const startSet = (servingFirst) => {
+                isServing = servingFirst;
+                ourScore = 0; theirScore = 0;
+                currentRotation = {};
+                players.forEach(p => {
+                    if (['I', 'II', 'III', 'IV', 'V', 'VI'].includes(p.position)) {
+                        currentRotation[p.position] = p.id;
+                    }
+                });
+                activeSetStartTime = new Date().toISOString();
+                activeSetStartingRotation = { ...currentRotation };
+
+                showView('active');
+                renderCourtView();
+                saveState();
+            };
+
+            const renderCourtView = () => {
+                ourScoreEl.querySelector('.score-value').textContent = ourScore;
+                theirScoreEl.querySelector('.score-value').textContent = theirScore;
+                
+                ourScoreEl.classList.remove('match-point'); theirScoreEl.classList.remove('match-point');
+                if (ourScore >= 24 && ourScore > theirScore) ourScoreEl.classList.add('match-point');
+                if (theirScore >= 24 && theirScore > ourScore) theirScoreEl.classList.add('match-point');
+                const serverPosElement = document.getElementById('pos-I');
+                serverPosElement.style.borderColor = isServing ? 'var(--secondary-color)' : 'var(--light-gray)';
+                serverPosElement.style.boxShadow = isServing ? '0 0 10px var(--secondary-color)' : 'none';
+                for (const pos in currentRotation) {
+                    const player = players.find(p => p.id === currentRotation[pos]);
+                    const posEl = document.getElementById(`pos-${pos}`);
+                    if (player) posEl.innerHTML = `<div class="pos-player-number">${player.number}</div><div class="pos-player-details">${player.name} (${player.role})</div>`;
+                }
+            };
+            
+            const rotate = () => {
+                currentRotation = { 'I': currentRotation['II'], 'II': currentRotation['III'], 'III': currentRotation['IV'], 'IV': currentRotation['V'], 'V': currentRotation['VI'], 'VI': currentRotation['I'] };
+            };
+
+            const handlePointWon = () => {
+                ourScore++;
+                if (!isServing) rotate();
+                isServing = true;
+                renderCourtView();
+                saveState();
+            };
+            
+            const handlePointLost = () => {
+                theirScore++;
+                isServing = false;
+                renderCourtView();
+                saveState();
+            };
+
+            // New function to handle score adjustments
+            const adjustScore = (target, action) => {
+                if (target === 'our') {
+                    if (action === 'increment') {
+                        ourScore++;
+                    } else if (action === 'decrement' && ourScore > 0) {
+                        ourScore--;
+                    }
+                } else if (target === 'their') {
+                    if (action === 'increment') {
+                        theirScore++;
+                    } else if (action === 'decrement' && theirScore > 0) {
+                        theirScore--;
+                    }
+                }
+                renderCourtView();
+                saveState();
+            };
+            
+            const endSet = () => {
+                if(confirm("Are you sure you want to end the current set?")) {
+                    completedSets.push({
+                        id: Date.now(),
+                        startTime: activeSetStartTime,
+                        endTime: new Date().toISOString(),
+                        ourScore, theirScore,
+                        startingRotation: activeSetStartingRotation
+                    });
+                    
+                    ourScore = 0; theirScore = 0; isServing = false;
+                    currentRotation = {}; activeSetStartTime = null; activeSetStartingRotation = {};
+                    
+                    showView('setup');
+                    saveState();
+                }
+            };
+            
+            const renderHistoryView = () => {
+                completedSetsList.innerHTML = '';
+                if (completedSets.length === 0) {
+                    completedSetsList.innerHTML = '<p>No sets have been completed yet.</p>';
+                    return;
+                }
+                completedSets.forEach(set => {
+                    const startTime = new Date(set.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    const endTime = new Date(set.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    const resultClass = set.ourScore > set.theirScore ? 'win' : 'loss';
+                    
+                    completedSetsList.insertAdjacentHTML('beforeend', `
+                        <div class="completed-set-item" data-id="${set.id}">
+                            <span class="set-time">${startTime} - ${endTime}</span>
+                            <span class="set-score ${resultClass}">${set.ourScore} - ${set.theirScore}</span>
+                        </div>
+                    `);
+                });
+            };
+
+            const showRotationPopup = (setId) => {
+                const set = completedSets.find(s => s.id == setId);
+                if (!set) return;
+                
+                const rotationList = document.getElementById('rotation-popup-list');
+                rotationList.innerHTML = '';
+                const positions = ['I', 'II', 'III', 'IV', 'V', 'VI'];
+                positions.forEach(pos => {
+                    const playerId = set.startingRotation[pos];
+                    const player = players.find(p => p.id == playerId);
+                    const playerInfo = player ? `#${player.number} ${player.name}` : 'Unknown Player';
+                    rotationList.insertAdjacentHTML('beforeend', `<li><strong>${pos}:</strong> ${playerInfo}</li>`);
+                });
+                openModal(rotationModal);
+            };
+            
+            // --- EVENT LISTENERS ---
+            addPlayerBtn.addEventListener('click', () => openModal(playerModal, () => {
+                document.getElementById('modal-title').textContent = 'Add New Player';
+                document.getElementById('player-id').value = '';
+                document.getElementById('player-name').value = '';
+                document.getElementById('player-number').value = '';
+                document.getElementById('player-role').value = 'Setter';
+            }));
+            document.getElementById('cancel-player-btn').addEventListener('click', () => closeModal(playerModal));
+            document.getElementById('save-player-btn').addEventListener('click', savePlayer);
+            document.getElementById('close-rotation-popup-btn').addEventListener('click', () => closeModal(rotationModal));
+            
+            playerList.addEventListener('click', (e) => {
+                if (e.target.classList.contains('edit-player-btn')) {
+                    const player = players.find(p => p.id == e.target.dataset.id);
+                    openModal(playerModal, () => {
+                        document.getElementById('modal-title').textContent = 'Edit Player';
+                        document.getElementById('player-id').value = player.id;
+                        document.getElementById('player-name').value = player.name;
+                        document.getElementById('player-number').value = player.number;
+                        document.getElementById('player-role').value = player.role;
+                    });
+                }
+            });
+
+            playerList.addEventListener('change', (e) => {
+                if (e.target.classList.contains('position-select')) {
+                    const selectedId = e.target.dataset.id, newPosition = e.target.value;
+                    const courtPositions = ['I', 'II', 'III', 'IV', 'V', 'VI'];
+                    if (courtPositions.includes(newPosition)) {
+                        const existingPlayer = players.find(p => p.position === newPosition);
+                        if (existingPlayer) {
+                            alert(`Position ${newPosition} is already taken by #${existingPlayer.number} ${existingPlayer.name}.`);
+                            e.target.value = players.find(p => p.id == selectedId).position; return;
+                        }
+                    }
+                    players.find(p => p.id == selectedId).position = newPosition;
+                    checkStartPositionValidity();
+                    saveState();
+                }
+            });
+
+            startServingBtn.addEventListener('click', () => startSet(true));
+            startReceivingBtn.addEventListener('click', () => startSet(false));
+            pointWonBtn.addEventListener('click', handlePointWon);
+            pointLostBtn.addEventListener('click', handlePointLost);
+            endSetBtn.addEventListener('click', endSet);
+
+            // Event listener for score adjustment buttons
+            document.addEventListener('click', (e) => {
+                if (e.target.classList.contains('score-adjust-btn')) {
+                    const target = e.target.getAttribute('data-target');
+                    const action = e.target.getAttribute('data-action');
+                    adjustScore(target, action);
+                }
+            });
+
+            scoreBoard.addEventListener('click', (e) => {
+                // Only flip scoreboard if clicking on score container but not on adjustment buttons
+                if (e.target.closest('.score-container') && !e.target.classList.contains('score-adjust-btn')) {
+                    const current = getComputedStyle(scoreBoard).flexDirection || 'row';
+                    scoreBoard.style.flexDirection = current === 'row' ? 'row-reverse' : 'row';
+                    saveState();
+                }
+            });
+
+            viewHistoryBtn.addEventListener('click', () => showView('history'));
+            backToRosterBtn.addEventListener('click', () => showView('setup'));
+            completedSetsList.addEventListener('click', (e) => {
+                const setItem = e.target.closest('.completed-set-item');
+                if (setItem) showRotationPopup(setItem.dataset.id);
+            });
+
+            // --- INITIALIZATION ---
+            loadState();
+        });
+    </script>
+</body>
+</html>
