@@ -1,20 +1,22 @@
 import { test, expect } from '@playwright/test';
 
 // Helper function to add a player
-async function addPlayer(page, name, number, role) {
-  await page.getByRole('button', { name: 'Add Player' }).click();
+async function addPlayer(page, name, number, role) {    
+  await page.getByRole('button', { name: /add new player to roster/i }).click();
+
+//await page.getByRole('button', { name: 'Add Player' }).click();
   await page.getByLabel('Name').fill(name);
-  await page.getByLabel('Number').fill(number);
+  await page.getByRole('spinbutton', { name: 'Number' }).fill(number);
   await page.getByLabel('Role').selectOption(role);
   await page.getByRole('button', { name: 'Save Player' }).click();
 }
 
 test.beforeEach(async ({ page }) => {
   // Go to the page and clear local storage for a clean slate
-  await page.goto('/index.html');
+  await page.goto('/');
   await page.evaluate(() => window.localStorage.clear());
   // Reload to apply the cleared storage
-  await page.goto('/index.html');
+  await page.goto('/');
 });
 
 test.describe('Player Roster Management', () => {
@@ -22,7 +24,7 @@ test.describe('Player Roster Management', () => {
     await addPlayer(page, 'Alice', '10', 'Setter');
     const playerItem = page.locator('.player-item');
     await expect(playerItem).toBeVisible();
-    await expect(playerItem.getByText('Alice')).toBeVisible();
+    await expect(playerItem.getByText('Alice', { exact: true })).toBeVisible();
     await expect(playerItem.getByText('10')).toBeVisible();
     await expect(playerItem.getByText('Setter')).toBeVisible();
   });
@@ -31,12 +33,14 @@ test.describe('Player Roster Management', () => {
     await addPlayer(page, 'Bob', '5', 'Middle');
     await page.getByRole('button', { name: 'Edit' }).click();
     await page.getByLabel('Name').fill('Robert');
-    await page.getByLabel('Number').fill('15');
+    await page.getByRole('spinbutton', { name: 'Number' }).fill('15');
+
+    // await page.getByLabel('number').fill('15');
     await page.getByRole('button', { name: 'Save Player' }).click();
 
     const playerItem = page.locator('.player-item');
     await expect(playerItem.getByText('Bob')).not.toBeVisible();
-    await expect(playerItem.getByText('Robert')).toBeVisible();
+    await expect(playerItem.getByText('Robert', { exact: true })).toBeVisible();
     await expect(playerItem.getByText('15')).toBeVisible();
   });
 });
@@ -66,9 +70,11 @@ test.describe('Set Management and Gameplay', () => {
     await playerItems[5].locator('select').selectOption('VI');
     
     // Start Set button should now be visible
-    await expect(page.getByRole('button', { name: 'Start Set (We Serve First)' })).toBeVisible();
+    <button id="start-serving-btn" class="btn-success" aria-label="Start set with our team serving first">Start Set (We Serve First)</button>
+
+    await expect(page.getByRole('button', { name: /start set with our team serving first/i })).toBeVisible();
     
-    await page.getByRole('button', { name: 'Start Set (We Serve First)' }).click();
+    await page.getByRole('button', { name: /start set with our team serving first/i }).click();
 
     // Assert we are in the active set view
     await expect(page.locator('#active-set-view')).toBeVisible();
@@ -88,7 +94,9 @@ test.describe('Set Management and Gameplay', () => {
     await playerItems[3].locator('select').selectOption('IV');
     await playerItems[4].locator('select').selectOption('V');
     await playerItems[5].locator('select').selectOption('VI');
-    await page.getByRole('button', { name: 'Start Set (We Receive First)' }).click();
+    await page.getByRole('button', { name: /start set with our team serving first/i }).click();
+
+    //await page.getByRole('button', { name: 'Start Set (We Receive First)' }).click();
 
     // Initial state check
     await expect(page.locator('#pos-I')).toContainText('Player I');
@@ -123,7 +131,9 @@ test.describe('Set Management and Gameplay', () => {
     await playerItems[3].locator('select').selectOption('IV');
     await playerItems[4].locator('select').selectOption('V');
     await playerItems[5].locator('select').selectOption('VI');
-    await page.getByRole('button', { name: 'Start Set (We Serve First)' }).click();
+    await page.getByRole('button', { name: /start set with our team serving first/i }).click();
+
+    //await page.getByRole('button', { name: 'Start Set (We Serve First)' }).click();
 
     // Score some points
     await page.getByRole('button', { name: 'Point Won' }).click();
@@ -135,13 +145,14 @@ test.describe('Set Management and Gameplay', () => {
 
     // End the set
     page.on('dialog', dialog => dialog.accept()); // Auto-accept the confirmation dialog
-    await page.getByRole('button', { name: 'End Set' }).click();
+      await page.getByRole('button', { name: /end current set/i }).click();
+//    await page.getByRole('button', { name: 'End Set' }).click();
     
     // Assert we are back in the setup view
     await expect(page.locator('#player-setup-view')).toBeVisible();
 
     // Go to history
-    await page.getByRole('button', { name: 'View Set History' }).click();
+    await page.getByRole('button', { name: /view completed sets history/i }).click();
     await expect(page.locator('#history-view')).toBeVisible();
 
     // Check if the set is listed with the correct score

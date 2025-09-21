@@ -7,3 +7,9 @@ test-results/
 
 # OS files
 .DS_Store
+tests/visual-regression.spec.js-snapshots
+
+# Playwright
+/playwright-report/
+/blob-report/
+/playwright/.cache/

@@ -52,7 +52,7 @@
             --primary-color: #005A9C;
             --secondary-color: #FDBB30;
             --background-color: #f4f7f6;
-            --text-color: #333;
+            --text-color: #333333;
             --light-gray: #e0e0e0;
             --white: #ffffff;
             --red: #D80027;
@@ -85,6 +85,7 @@
             color: var(--primary-color);
             border-bottom: 2px solid var(--light-gray);
             padding-bottom: 10px;
+            background-color: var(--background-color);
         }
 
         button {
@@ -104,11 +105,23 @@
         }
         .btn-secondary { background-color: #6c757d; }
         .btn-secondary:hover { background-color: #5a6268; }
-        .btn-success { background-color: #28a745; }
-        .btn-success:hover { background-color: #218838; }
+        .btn-success { background-color: #1d6512; }
+        .btn-success:hover { background-color: #1d6512; }
         .btn-danger { background-color: var(--red); }
         .btn-danger:hover { background-color: #c82333; }
 
+        /* Screen reader only content */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
 
         /* Player Setup View */
         .view-section { padding: 15px; }
@@ -149,8 +162,8 @@
         }
         #start-set-controls, #history-controls { margin-top: 20px; }
 
-
         /* Active Set View */
+/* Active Set View */
         #score-board {
             display: flex;
             justify-content: space-between;
@@ -165,6 +178,9 @@
             /* This container now just defines the width */
             width: 15%;
             position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
         .score {
@@ -181,30 +197,20 @@
             border-radius: 8px;
             transition: background-color 0.2s ease;
             position: relative;
+            flex: 1;
+            width: 100%;
         }
 
-        #their-score { 
-            background-color: #444444; 
-            transform: scale(0.91); 
-            transform-origin: center right;
-        }
-
-        .score-value {
-            font-size: 11vh; /* Large, responsive font for the number */
-            line-height: 1;
-        }
-
-        .score-label { 
-            font-size: 1.8vh; /* Smaller, responsive font for the label */
-            font-weight: normal;
-            color: rgba(255, 255, 255, 0.7); /* Make it slightly transparent */
-            margin-bottom: 0.5vh;
+        .score-controls {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-top: 5px;
+            padding: 0 8px;
         }
 
         /* Score adjustment buttons */
         .score-adjust-btn {
-            position: absolute;
-            bottom: 8px;
             width: 25px;
             height: 25px;
             border-radius: 50%;
@@ -227,14 +233,6 @@
             transform: scale(1.1);
         }
 
-        .score-adjust-btn.decrement {
-            left: 8px;
-        }
-
-        .score-adjust-btn.increment {
-            right: 8px;
-        }
-
         .match-point { 
             background-color: var(--dark-red) !important; 
         }
@@ -249,6 +247,12 @@
             border-radius: 8px;
             padding: 10px;
             background-color: #eaf2f8;
+        }
+        .front-court-row {
+            display: contents;
+        }
+        .back-court-row {
+            display: contents;
         }
         .court-position {
             background-color: var(--white);
@@ -311,7 +315,6 @@
         .set-score.loss { color: var(--red); }
         .set-time { color: #555; }
 
-
         /* Modal */
         .modal {
             position: fixed; z-index: 1000; left: 0; top: 0;
@@ -348,85 +351,131 @@
 </head>
 <body>
 
-    <div class="container">
-        <div id="player-setup-view" class="view-section">
-            <h2>🏐 Player Roster & Starting Lineup</h2>
-            <div id="player-list"></div>
-            <button id="add-player-btn">Add Player</button>
-            <div id="start-set-controls" class="hidden">
+    <div class="container" role="main">
+        <div id="player-setup-view" class="view-section" role="region" aria-labelledby="setup-heading">
+            <h2 id="setup-heading">🏐 Player Roster & Starting Lineup</h2>
+            <div id="player-list" role="list" aria-label="Player roster"></div>
+            <p id="no-players-message" class="hidden" role="status">No players added yet. Click "Add Player" to get started.</p>
+            <button id="add-player-btn" aria-label="Add new player to roster">Add Player</button>
+            <div id="start-set-controls" class="hidden" role="region" aria-labelledby="start-controls-heading">
                 <hr style="margin: 20px 0;">
-                <h3>Ready to Start!</h3>
-                <button id="start-serving-btn" class="btn-success">Start Set (We Serve First)</button>
-                <button id="start-receiving-btn" class="btn-secondary">Start Set (We Receive First)</button>
+                <h3 id="start-controls-heading">Ready to Start!</h3>
+                <button id="start-serving-btn" class="btn-success" aria-label="Start set with our team serving first">Start Set (We Serve First)</button>
+                <button id="start-receiving-btn" class="btn-secondary" aria-label="Start set with opponent team serving first">Start Set (We Receive First)</button>
             </div>
-            <div id="history-controls">
+            <div id="history-controls" role="region" aria-labelledby="history-controls-heading">
                 <hr style="margin: 20px 0;">
-                <button id="view-history-btn" class="btn-secondary">View Set History</button>
+                <h3 id="history-controls-heading" class="sr-only">Navigation</h3>
+                <button id="view-history-btn" class="btn-secondary" aria-label="View completed sets history">View Set History</button>
             </div>
         </div>
 
-        <div id="active-set-view" class="view-section hidden">
-            <div id="score-board">
+        <div id="active-set-view" class="view-section hidden" role="region" aria-labelledby="active-set-heading">
+            <h2 id="active-set-heading" class="sr-only">Active Set</h2>
+            <div id="score-board" role="region" aria-label="Scoreboard - click to flip orientation">
                 <div id="their-score-container" class="score-container">
-                    <div id="their-score" class="score">
-                        <span class="score-value">0</span>
-                        <span class="score-label">THEM</span>
-                        <button class="score-adjust-btn decrement" data-target="their" data-action="decrement">-</button>
-                        <button class="score-adjust-btn increment" data-target="their" data-action="increment">+</button>
+                    <div id="their-score" class="score" role="img" aria-labelledby="their-score-label">
+                        <span class="score-value" aria-live="polite">0</span>
+                        <span id="their-score-label" class="score-label">THEM</span>
                     </div>
+                    <div class="score-controls" role="group" aria-label="Opponent score controls">
+                        <button class="score-adjust-btn decrement" data-target="their" data-action="decrement" 
+                                aria-label="Decrease opponent score">-</button>
+                        <button class="score-adjust-btn increment" data-target="their" data-action="increment" 
+                                aria-label="Increase opponent score">+</button>
+                    </div>
+
                 </div>
             
-                <button id="end-set-btn" class="btn-danger">End Set</button>
+                <button id="end-set-btn" class="btn-danger" aria-label="End current set">End Set</button>
                 
                 <div id="our-score-container" class="score-container">
-                    <div id="our-score" class="score">
-                        <span class="score-value">0</span>
-                        <span class="score-label">US</span>
-                        <button class="score-adjust-btn decrement" data-target="our" data-action="decrement">-</button>
-                        <button class="score-adjust-btn increment" data-target="our" data-action="increment">+</button>
+                    <div id="our-score" class="score" role="img" aria-labelledby="our-score-label">
+                        <span class="score-value" aria-live="polite">0</span>
+                        <span id="our-score-label" class="score-label">US</span>
+                    </div>
+                    <div class="score-controls" role="group" aria-label="Our score controls">
+                        <button class="score-adjust-btn decrement" data-target="our" data-action="decrement" 
+                                aria-label="Decrease our score">-</button>
+                        <button class="score-adjust-btn increment" data-target="our" data-action="increment" 
+                                aria-label="Increase our score">+</button>
                     </div>
                 </div>
             </div>
-            <div id="court-grid">
-                <div id="pos-IV" class="court-position" data-pos="IV"></div>
-                <div id="pos-III" class="court-position" data-pos="III"></div>
-                <div id="pos-II" class="court-position" data-pos="II"></div>
-                <div id="pos-V" class="court-position" data-pos="V"></div>
-                <div id="pos-VI" class="court-position" data-pos="VI"></div>
-                <div id="pos-I" class="court-position" data-pos="I"></div>
+            
+            <div id="court-grid" role="grid" aria-label="Volleyball court positions">
+                <div role="row" class="front-court-row">
+                    <div id="pos-IV" class="court-position" data-pos="IV" role="gridcell" 
+                        aria-label="Position 4 - Front Left"></div>
+                    <div id="pos-III" class="court-position" data-pos="III" role="gridcell" 
+                        aria-label="Position 3 - Front Middle"></div>
+                    <div id="pos-II" class="court-position" data-pos="II" role="gridcell" 
+                        aria-label="Position 2 - Front Right"></div>
+                </div>
+                    <div role="row" class="back-court-row">
+                    <div id="pos-V" class="court-position" data-pos="V" role="gridcell" 
+                        aria-label="Position 5 - Back Left"></div>
+                    <div id="pos-VI" class="court-position" data-pos="VI" role="gridcell" 
+                        aria-label="Position 6 - Back Middle"></div>
+                    <div id="pos-I" class="court-position" data-pos="I" role="gridcell" 
+                        aria-label="Position 1 - Back Right (Server)"></div>
+                </div>
             </div>
-            <div id="point-controls">
-                <button id="point-won-btn" class="btn-success">Point Won</button>
-                <button id="point-lost-btn" class="btn-danger">Point Lost</button>
+            
+            <div id="point-controls" role="group" aria-label="Point scoring controls">
+                <button id="point-won-btn" class="btn-success" aria-label="Record point won by our team">Point Won</button>
+                <button id="point-lost-btn" class="btn-danger" aria-label="Record point lost to opponent">Point Lost</button>
             </div>
         </div>
         
-        <div id="history-view" class="view-section hidden">
-            <h2>📜 Set History</h2>
-            <div id="completed-sets-list"></div>
-            <button id="back-to-roster-btn">Back to Roster</button>
+        <div id="history-view" class="view-section hidden" role="region" aria-labelledby="history-heading">
+            <h2 id="history-heading">📜 Set History</h2>
+            <div id="completed-sets-list" role="list" aria-label="List of completed sets"></div>
+            <button id="back-to-roster-btn" aria-label="Return to player roster">Back to Roster</button>
         </div>
-
     </div>
 
-    <div id="player-modal" class="modal hidden">
+    <div id="player-modal" class="modal hidden" role="dialog" aria-labelledby="player-modal-title" aria-modal="true">
         <div class="modal-content">
-            <h3 id="modal-title">Add New Player</h3>
+            <h3 id="player-modal-title">Add New Player</h3>
             <input type="hidden" id="player-id">
-            <div class="form-group"><label for="player-name">Name</label><input type="text" id="player-name" placeholder="e.g., Jane Doe"></div>
-            <div class="form-group"><label for="player-number">Number</label><input type="number" id="player-number" placeholder="e.g., 7"></div>
-            <div class="form-group"><label for="player-role">Role</label><select id="player-role"><option value="Setter">Setter</option><option value="Outside">Outside Hitter</option><option value="Middle">Middle Blocker</option><option value="Opposite">Opposite Hitter</option><option value="Libero">Libero</option></select></div>
-            <div class="modal-actions"><button id="cancel-player-btn" class="btn-secondary">Cancel</button><button id="save-player-btn">Save Player</button></div>
+            <div class="form-group">
+                <label for="player-name">Name</label>
+                <input type="text" id="player-name" placeholder="e.g., Jane Doe" aria-required="true">
+            </div>
+            <div class="form-group">
+                <label for="player-number">Number</label>
+                <input type="number" id="player-number" placeholder="e.g., 7" aria-required="true">
+            </div>
+            <div class="form-group">
+                <label for="player-role">Role</label>
+                <select id="player-role">
+                    <option value="Setter">Setter</option>
+                    <option value="Outside">Outside Hitter</option>
+                    <option value="Middle">Middle Blocker</option>
+                    <option value="Opposite">Opposite Hitter</option>
+                    <option value="Libero">Libero</option>
+                </select>
+            </div>
+            <div class="modal-actions">
+                <button id="cancel-player-btn" class="btn-secondary" aria-label="Cancel player creation">Cancel</button>
+                <button id="save-player-btn" aria-label="Save player information">Save Player</button>
+            </div>
         </div>
     </div>
     
-    <div id="rotation-modal" class="modal hidden">
+    <div id="rotation-modal" class="modal hidden" role="dialog" aria-labelledby="rotation-modal-title" aria-modal="true">
         <div class="modal-content">
-            <h3>Starting Rotation</h3>
-            <ul id="rotation-popup-list"></ul>
-            <div class="modal-actions"><button id="close-rotation-popup-btn" class="btn-secondary">Close</button></div>
+            <h3 id="rotation-modal-title">Starting Rotation</h3>
+            <ul id="rotation-popup-list" role="list" aria-label="Starting rotation details"></ul>
+            <div class="modal-actions">
+                <button id="close-rotation-popup-btn" class="btn-secondary" aria-label="Close rotation details">Close</button>
+            </div>
         </div>
     </div>
+
+    <!-- Live region for announcements -->
+    <div id="announcements" class="sr-only" aria-live="polite" aria-atomic="true"></div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -444,6 +493,8 @@
                 history: document.getElementById('history-view')
             };
             const playerList = document.getElementById('player-list');
+            const noPlayersMessage = document.getElementById('no-players-message'); 
+
             const addPlayerBtn = document.getElementById('add-player-btn');
             const startSetControls = document.getElementById('start-set-controls');
             const startServingBtn = document.getElementById('start-serving-btn');
@@ -462,9 +513,16 @@
 
             const playerModal = document.getElementById('player-modal');
             const rotationModal = document.getElementById('rotation-modal');
+            const announcements = document.getElementById('announcements');
+
+            // --- ACCESSIBILITY FUNCTIONS ---
+            const announce = (message) => {
+                announcements.textContent = message;
+                // Clear after a short delay to allow for re-announcements
+                setTimeout(() => announcements.textContent = '', 1000);
+            };
 
             // --- FUNCTIONS ---
-
             const saveState = () => {
                 const state = {
                     players, completedSets, ourScore, theirScore, isServing,
@@ -472,27 +530,38 @@
                     currentView: Object.keys(views).find(key => !views[key].classList.contains('hidden')),
                     scoreBoardDirection: scoreBoard.style.flexDirection || 'row'
                 };
-                localStorage.setItem('volleyballTrackerState', JSON.stringify(state));
+                try {
+                    localStorage.setItem('volleyballTrackerState', JSON.stringify(state));
+                } catch (e) {
+                    // Handle localStorage errors gracefully
+                    console.warn('Could not save state to localStorage:', e);
+                }
             };
             
             const loadState = () => {
-                const savedState = localStorage.getItem('volleyballTrackerState');
-                if (savedState) {
-                    const state = JSON.parse(savedState);
-                    players = state.players || [];
-                    completedSets = state.completedSets || [];
-                    ourScore = state.ourScore || 0;
-                    theirScore = state.theirScore || 0;
-                    isServing = state.isServing || false;
-                    currentRotation = state.currentRotation || {};
-                    activeSetStartTime = state.activeSetStartTime || null;
-                    activeSetStartingRotation = state.activeSetStartingRotation || {};
-                    scoreBoard.style.flexDirection = state.scoreBoardDirection || 'row';
+                try {
+                    const savedState = localStorage.getItem('volleyballTrackerState');
+                    if (savedState) {
+                        const state = JSON.parse(savedState);
+                        players = state.players || [];
+                        completedSets = state.completedSets || [];
+                        ourScore = state.ourScore || 0;
+                        theirScore = state.theirScore || 0;
+                        isServing = state.isServing || false;
+                        currentRotation = state.currentRotation || {};
+                        activeSetStartTime = state.activeSetStartTime || null;
+                        activeSetStartingRotation = state.activeSetStartingRotation || {};
+                        scoreBoard.style.flexDirection = state.scoreBoardDirection || 'row';
 
-                    renderPlayerList();
-                    showView(state.currentView || 'setup');
-                    if (state.currentView === 'active') renderCourtView();
-                } else {
+                        renderPlayerList();
+                        showView(state.currentView || 'setup');
+                        if (state.currentView === 'active') renderCourtView();
+                    } else {
+                        renderPlayerList();
+                        showView('setup');
+                    }
+                } catch (e) {
+                    console.warn('Could not load state from localStorage:', e);
                     renderPlayerList();
                     showView('setup');
                 }
@@ -502,32 +571,69 @@
                 for (const key in views) {
                     views[key].classList.toggle('hidden', key !== viewKey);
                 }
-                if (viewKey === 'history') renderHistoryView();
+                
+                // Update page title and announce view change
+                let viewName;
+                switch(viewKey) {
+                    case 'setup':
+                        viewName = 'Player Setup';
+                        document.title = 'Player Setup - Volleyball Tracker';
+                        break;
+                    case 'active':
+                        viewName = 'Active Set';
+                        document.title = 'Active Set - Volleyball Tracker';
+                        break;
+                    case 'history':
+                        viewName = 'Set History';
+                        document.title = 'Set History - Volleyball Tracker';
+                        renderHistoryView();
+                        break;
+                }
+                announce(`Switched to ${viewName} view`);
             };
 
             const renderPlayerList = () => {
                 playerList.innerHTML = '';
+                if (players.length === 0) {
+                    noPlayersMessage.classList.remove('hidden');
+                    playerList.classList.add('hidden'); // Optional, but good practice
+
+                    return;
+                } 
+                else {
+                    noPlayersMessage.classList.add('hidden');
+                    playerList.classList.remove('hidden'); 
+
+                }
+                
                 players.forEach(player => {
-                    playerList.insertAdjacentHTML('beforeend', `
-                        <div class="player-item">
-                            <div class="player-info">
-                                <span class="player-number">${player.number}</span>
-                                <span class="player-name">${player.name}</span>
-                                <span class="player-role">${player.role}</span>
-                            </div>
-                            <select class="position-select" data-id="${player.id}">
-                                <option value="sub" ${player.position === 'sub' ? 'selected' : ''}>Sub</option>
-                                <option value="libero" ${player.position === 'libero' ? 'selected' : ''}>Libero</option>
-                                <option value="I" ${player.position === 'I' ? 'selected' : ''}>I (Server)</option>
-                                <option value="II" ${player.position === 'II' ? 'selected' : ''}>II (Front Right)</option>
-                                <option value="III" ${player.position === 'III' ? 'selected' : ''}>III (Front Middle)</option>
-                                <option value="IV" ${player.position === 'IV' ? 'selected' : ''}>IV (Front Left)</option>
-                                <option value="V" ${player.position === 'V' ? 'selected' : ''}>V (Back Left)</option>
-                                <option value="VI" ${player.position === 'VI' ? 'selected' : ''}>VI (Back Middle)</option>
-                            </select>
-                            <button class="edit-player-btn" data-id="${player.id}">Edit</button>
+                    const playerItem = document.createElement('div');
+                    playerItem.className = 'player-item';
+                    playerItem.setAttribute('role', 'listitem');
+                    playerItem.setAttribute('aria-label', `Player ${player.number}: ${player.name}, ${player.role}`);
+                    
+                    playerItem.innerHTML = `
+                        <div class="player-info">
+                            <span class="player-number" aria-label="Jersey number">${player.number}</span>
+                            <span class="player-name">${player.name}</span>
+                            <span class="player-role">${player.role}</span>
                         </div>
-                    `);
+                        <label for="position-${player.id}" class="sr-only">Position for ${player.name}</label>
+                        <select class="position-select" id="position-${player.id}" data-id="${player.id}" 
+                                aria-label="Court position for ${player.name}">
+                            <option value="sub" ${player.position === 'sub' ? 'selected' : ''}>Sub</option>
+                            <option value="libero" ${player.position === 'libero' ? 'selected' : ''}>Libero</option>
+                            <option value="I" ${player.position === 'I' ? 'selected' : ''}>I (Server)</option>
+                            <option value="II" ${player.position === 'II' ? 'selected' : ''}>II (Front Right)</option>
+                            <option value="III" ${player.position === 'III' ? 'selected' : ''}>III (Front Middle)</option>
+                            <option value="IV" ${player.position === 'IV' ? 'selected' : ''}>IV (Front Left)</option>
+                            <option value="V" ${player.position === 'V' ? 'selected' : ''}>V (Back Left)</option>
+                            <option value="VI" ${player.position === 'VI' ? 'selected' : ''}>VI (Back Middle)</option>
+                        </select>
+                        <button class="edit-player-btn" data-id="${player.id}" 
+                                aria-label="Edit ${player.name}">Edit</button>
+                    `;
+                    playerList.appendChild(playerItem);
                 });
                 checkStartPositionValidity();
             };
@@ -535,26 +641,58 @@
             const checkStartPositionValidity = () => {
                 const assigned = new Set(players.map(p => p.position));
                 const required = ['I', 'II', 'III', 'IV', 'V', 'VI'];
-                startSetControls.classList.toggle('hidden', !required.every(pos => assigned.has(pos)));
+                const canStart = required.every(pos => assigned.has(pos));
+                startSetControls.classList.toggle('hidden', !canStart);
+                
+                if (canStart) {
+                    announce('All court positions are assigned. Ready to start a set.');
+                }
             };
 
             const openModal = (modalEl, setupFn) => {
                 if (setupFn) setupFn();
                 modalEl.classList.remove('hidden');
+                // Focus the first focusable element in the modal
+                const focusable = modalEl.querySelector('input, select, button');
+                if (focusable) focusable.focus();
             };
-            const closeModal = (modalEl) => modalEl.classList.add('hidden');
+            
+            const closeModal = (modalEl) => {
+                modalEl.classList.add('hidden');
+                // Return focus to the element that opened the modal
+                if (modalEl === playerModal) {
+                    addPlayerBtn.focus();
+                }
+            };
 
             const savePlayer = () => {
                 const id = document.getElementById('player-id').value;
                 const name = document.getElementById('player-name').value.trim();
                 const number = document.getElementById('player-number').value;
                 const role = document.getElementById('player-role').value;
-                if (!name || !number) { alert('Player name and number are required.'); return; }
-                if (id) {
-                    Object.assign(players.find(p => p.id == id), { name, number, role });
-                } else {
-                    players.push({ id: Date.now(), name, number, role, position: 'sub' });
+                
+                if (!name || !number) { 
+                    alert('Player name and number are required.');
+                    return; 
                 }
+                
+                // Check for duplicate numbers
+                const existingPlayer = players.find(p => p.number == number && p.id != id);
+                if (existingPlayer) {
+                    alert(`Jersey number ${number} is already taken by ${existingPlayer.name}.`);
+                    return;
+                }
+                
+                if (id) {
+                    const player = players.find(p => p.id == id);
+                    Object.assign(player, { name, number, role });
+                    announce(`Updated player: ${name}, number ${number}`);
+                } else {
+                    const newPlayer = { id: Date.now(), name, number, role, position: 'sub' };
+                    players.push(newPlayer);
+                    announce(`Added new player: ${name}, number ${number}`);
+                }
+                
                 renderPlayerList();
                 saveState();
                 closeModal(playerModal);
@@ -574,35 +712,66 @@
 
                 showView('active');
                 renderCourtView();
+                announce(`Set started. ${servingFirst ? 'We serve first.' : 'Opponent serves first.'}`);
                 saveState();
             };
 
             const renderCourtView = () => {
+                // Update scores
                 ourScoreEl.querySelector('.score-value').textContent = ourScore;
                 theirScoreEl.querySelector('.score-value').textContent = theirScore;
                 
-                ourScoreEl.classList.remove('match-point'); theirScoreEl.classList.remove('match-point');
-                if (ourScore >= 24 && ourScore > theirScore) ourScoreEl.classList.add('match-point');
-                if (theirScore >= 24 && theirScore > ourScore) theirScoreEl.classList.add('match-point');
+                // Update match point styling
+                ourScoreEl.classList.remove('match-point'); 
+                theirScoreEl.classList.remove('match-point');
+                if (ourScore >= 24 && ourScore > theirScore) {
+                    ourScoreEl.classList.add('match-point');
+                }
+                if (theirScore >= 24 && theirScore > ourScore) {
+                    theirScoreEl.classList.add('match-point');
+                }
+                
+                // Update server indication
                 const serverPosElement = document.getElementById('pos-I');
                 serverPosElement.style.borderColor = isServing ? 'var(--secondary-color)' : 'var(--light-gray)';
                 serverPosElement.style.boxShadow = isServing ? '0 0 10px var(--secondary-color)' : 'none';
+                
+                // Update court positions
                 for (const pos in currentRotation) {
                     const player = players.find(p => p.id === currentRotation[pos]);
                     const posEl = document.getElementById(`pos-${pos}`);
-                    if (player) posEl.innerHTML = `<div class="pos-player-number">${player.number}</div><div class="pos-player-details">${player.name} (${player.role})</div>`;
+                    if (player && posEl) {
+                        posEl.innerHTML = `
+                            <div class="pos-player-number">${player.number}</div>
+                            <div class="pos-player-details">${player.name} (${player.role})</div>
+                        `;
+                        posEl.setAttribute('aria-label', 
+                            `Position ${pos}: ${player.name}, number ${player.number}, ${player.role}${pos === 'I' && isServing ? ' - Currently serving' : ''}`
+                        );
+                    }
                 }
             };
             
             const rotate = () => {
-                currentRotation = { 'I': currentRotation['II'], 'II': currentRotation['III'], 'III': currentRotation['IV'], 'IV': currentRotation['V'], 'V': currentRotation['VI'], 'VI': currentRotation['I'] };
+                currentRotation = { 
+                    'I': currentRotation['II'], 
+                    'II': currentRotation['III'], 
+                    'III': currentRotation['IV'], 
+                    'IV': currentRotation['V'], 
+                    'V': currentRotation['VI'], 
+                    'VI': currentRotation['I'] 
+                };
+                announce('Team rotated clockwise');
             };
 
             const handlePointWon = () => {
                 ourScore++;
-                if (!isServing) rotate();
+                if (!isServing) {
+                    rotate();
+                }
                 isServing = true;
                 renderCourtView();
+                announce(`Point won! Our score: ${ourScore}. We are serving.`);
                 saveState();
             };
             
@@ -610,30 +779,41 @@
                 theirScore++;
                 isServing = false;
                 renderCourtView();
+                announce(`Point lost. Opponent score: ${theirScore}. Opponent is serving.`);
                 saveState();
             };
 
-            // New function to handle score adjustments
+            // Function to handle score adjustments
             const adjustScore = (target, action) => {
+                let changed = false;
                 if (target === 'our') {
                     if (action === 'increment') {
                         ourScore++;
+                        changed = true;
                     } else if (action === 'decrement' && ourScore > 0) {
                         ourScore--;
+                        changed = true;
                     }
                 } else if (target === 'their') {
                     if (action === 'increment') {
                         theirScore++;
+                        changed = true;
                     } else if (action === 'decrement' && theirScore > 0) {
                         theirScore--;
+                        changed = true;
                     }
                 }
-                renderCourtView();
-                saveState();
+                
+                if (changed) {
+                    renderCourtView();
+                    announce(`Score adjusted: Us ${ourScore}, Them ${theirScore}`);
+                    saveState();
+                }
             };
             
             const endSet = () => {
                 if(confirm("Are you sure you want to end the current set?")) {
+                    const setResult = ourScore > theirScore ? 'won' : 'lost';
                     completedSets.push({
                         id: Date.now(),
                         startTime: activeSetStartTime,
@@ -641,6 +821,8 @@
                         ourScore, theirScore,
                         startingRotation: activeSetStartingRotation
                     });
+                    
+                    announce(`Set ended. Final score: Us ${ourScore}, Them ${theirScore}. Set ${setResult}.`);
                     
                     ourScore = 0; theirScore = 0; isServing = false;
                     currentRotation = {}; activeSetStartTime = null; activeSetStartingRotation = {};
@@ -653,20 +835,29 @@
             const renderHistoryView = () => {
                 completedSetsList.innerHTML = '';
                 if (completedSets.length === 0) {
-                    completedSetsList.innerHTML = '<p>No sets have been completed yet.</p>';
+                    completedSetsList.innerHTML = '<p role="status">No sets have been completed yet.</p>';
                     return;
                 }
+                
                 completedSets.forEach(set => {
                     const startTime = new Date(set.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                     const endTime = new Date(set.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                     const resultClass = set.ourScore > set.theirScore ? 'win' : 'loss';
+                    const result = set.ourScore > set.theirScore ? 'Won' : 'Lost';
                     
-                    completedSetsList.insertAdjacentHTML('beforeend', `
-                        <div class="completed-set-item" data-id="${set.id}">
-                            <span class="set-time">${startTime} - ${endTime}</span>
-                            <span class="set-score ${resultClass}">${set.ourScore} - ${set.theirScore}</span>
-                        </div>
-                    `);
+                    const setItem = document.createElement('div');
+                    setItem.className = 'completed-set-item';
+                    setItem.setAttribute('role', 'listitem');
+                    setItem.setAttribute('data-id', set.id);
+                    setItem.setAttribute('aria-label', `Set ${result} ${set.ourScore} to ${set.theirScore}, played from ${startTime} to ${endTime}. Click to view starting rotation.`);
+                    setItem.setAttribute('tabindex', '0');
+                    
+                    setItem.innerHTML = `
+                        <span class="set-time">${startTime} - ${endTime}</span>
+                        <span class="set-score ${resultClass}">${set.ourScore} - ${set.theirScore}</span>
+                    `;
+                    
+                    completedSetsList.appendChild(setItem);
                 });
             };
 
@@ -681,19 +872,25 @@
                     const playerId = set.startingRotation[pos];
                     const player = players.find(p => p.id == playerId);
                     const playerInfo = player ? `#${player.number} ${player.name}` : 'Unknown Player';
-                    rotationList.insertAdjacentHTML('beforeend', `<li><strong>${pos}:</strong> ${playerInfo}</li>`);
+                    
+                    const listItem = document.createElement('li');
+                    listItem.setAttribute('role', 'listitem');
+                    listItem.innerHTML = `<strong>${pos}:</strong> ${playerInfo}`;
+                    rotationList.appendChild(listItem);
                 });
+                
                 openModal(rotationModal);
             };
             
             // --- EVENT LISTENERS ---
             addPlayerBtn.addEventListener('click', () => openModal(playerModal, () => {
-                document.getElementById('modal-title').textContent = 'Add New Player';
+                document.getElementById('player-modal-title').textContent = 'Add New Player';
                 document.getElementById('player-id').value = '';
                 document.getElementById('player-name').value = '';
                 document.getElementById('player-number').value = '';
                 document.getElementById('player-role').value = 'Setter';
             }));
+            
             document.getElementById('cancel-player-btn').addEventListener('click', () => closeModal(playerModal));
             document.getElementById('save-player-btn').addEventListener('click', savePlayer);
             document.getElementById('close-rotation-popup-btn').addEventListener('click', () => closeModal(rotationModal));
@@ -702,7 +899,7 @@
                 if (e.target.classList.contains('edit-player-btn')) {
                     const player = players.find(p => p.id == e.target.dataset.id);
                     openModal(playerModal, () => {
-                        document.getElementById('modal-title').textContent = 'Edit Player';
+                        document.getElementById('player-modal-title').textContent = 'Edit Player';
                         document.getElementById('player-id').value = player.id;
                         document.getElementById('player-name').value = player.name;
                         document.getElementById('player-number').value = player.number;
@@ -713,16 +910,23 @@
 
             playerList.addEventListener('change', (e) => {
                 if (e.target.classList.contains('position-select')) {
-                    const selectedId = e.target.dataset.id, newPosition = e.target.value;
+                    const selectedId = e.target.dataset.id;
+                    const newPosition = e.target.value;
+                    const player = players.find(p => p.id == selectedId);
                     const courtPositions = ['I', 'II', 'III', 'IV', 'V', 'VI'];
+                    
                     if (courtPositions.includes(newPosition)) {
-                        const existingPlayer = players.find(p => p.position === newPosition);
+                        const existingPlayer = players.find(p => p.position === newPosition && p.id != selectedId);
                         if (existingPlayer) {
                             alert(`Position ${newPosition} is already taken by #${existingPlayer.number} ${existingPlayer.name}.`);
-                            e.target.value = players.find(p => p.id == selectedId).position; return;
+                            e.target.value = player.position; 
+                            return;
                         }
                     }
-                    players.find(p => p.id == selectedId).position = newPosition;
+                    
+                    const oldPosition = player.position;
+                    player.position = newPosition;
+                    announce(`${player.name} moved from ${oldPosition} to ${newPosition}`);
                     checkStartPositionValidity();
                     saveState();
                 }
@@ -744,19 +948,42 @@
             });
 
             scoreBoard.addEventListener('click', (e) => {
-                // Only flip scoreboard if clicking on score container but not on adjustment buttons
-                if (e.target.closest('.score-container') && !e.target.classList.contains('score-adjust-btn')) {
+                // Only flip scoreboard if clicking on score display but not on adjustment buttons or controls
+                if (e.target.closest('.score') && !e.target.classList.contains('score-adjust-btn') && !e.target.closest('.score-controls')) {
                     const current = getComputedStyle(scoreBoard).flexDirection || 'row';
                     scoreBoard.style.flexDirection = current === 'row' ? 'row-reverse' : 'row';
+                    announce('Scoreboard orientation flipped');
                     saveState();
                 }
             });
 
             viewHistoryBtn.addEventListener('click', () => showView('history'));
             backToRosterBtn.addEventListener('click', () => showView('setup'));
+            
             completedSetsList.addEventListener('click', (e) => {
                 const setItem = e.target.closest('.completed-set-item');
                 if (setItem) showRotationPopup(setItem.dataset.id);
+            });
+            
+            completedSetsList.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    const setItem = e.target.closest('.completed-set-item');
+                    if (setItem) {
+                        e.preventDefault();
+                        showRotationPopup(setItem.dataset.id);
+                    }
+                }
+            });
+
+            // Keyboard navigation for modals
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    if (!playerModal.classList.contains('hidden')) {
+                        closeModal(playerModal);
+                    } else if (!rotationModal.classList.contains('hidden')) {
+                        closeModal(rotationModal);
+                    }
+                }
             });
 
             // --- INITIALIZATION ---

@@ -1,24 +1,31 @@
 {
-    "name": "volleyball-tracker",
-    "version": "1.0.0",
-    "description": "Playwright tests for a volleyball rotation tracker.",
-    "main": "index.js",
-    "scripts": {
-        "serve": "http-server -p 3000 --cors",
-        "test": "npx playwright test",
-        "test:ui": "npx playwright test --ui",
-        "report": "npx playwright show-report"
-    },
-    "keywords": [
-        "volleyball",
-        "playwright",
-        "test"
-    ],
-    "author": "",
-    "license": "ISC",
-    "devDependencies": {
-        "@playwright/test": "^1.45.3",
-        "@types/node": "^24.5.2",
-        "http-server": "^14.1.1"
-    }
+  "name": "volleyball-tracker",
+  "version": "1.0.0",
+  "description": "Playwright tests for a volleyball rotation tracker.",
+  "main": "index.js",
+  "scripts": {
+    "serve": "http-server -p 3000 --cors",
+    "test": "npx playwright test",
+    "test:ui": "npx playwright test --ui",
+    "report": "npx playwright show-report",
+    "test:headed": "playwright test --headed",
+    "test:debug": "playwright test --debug",
+    "test:accessibility": "playwright test accessibility",
+    "test:mobile": "playwright test mobile-responsive",
+    "test:visual": "playwright test visual-regression",
+    "test:update-snapshots": "playwright test visual-regression --update-snapshots"
+  },
+  "keywords": [
+    "volleyball",
+    "playwright",
+    "test"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@axe-core/playwright": "^4.10.2",
+    "@playwright/test": "^1.55.0",
+    "@types/node": "^24.5.2",
+    "http-server": "^14.1.1"
+  }
 }
