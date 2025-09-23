@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
   
     <!-- Inlined Manifest as Script -->
     <script type="application/manifest+json" id="manifest">
@@ -109,7 +109,11 @@
         .btn-success:hover { background-color: #1d6512; }
         .btn-danger { background-color: var(--red); }
         .btn-danger:hover { background-color: #c82333; }
-
+        button:active,
+        .score-adjust-btn:active {
+            transform: scale(0.97); /* Briefly shrinks the button on tap */
+            opacity: 0.8; /* Slightly fades the button on tap */
+        }
         /* Screen reader only content */
         .sr-only {
             position: absolute;
@@ -174,6 +178,12 @@
             flex-shrink: 0;
         }
 
+        body.no-scroll {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+            position: fixed;
+        }
         .score-container { 
             /* This container now just defines the width */
             width: 15%;
@@ -200,7 +210,22 @@
             flex: 1;
             width: 100%;
         }
+        @keyframes scorePulse {
+        0% {
+            transform: scale(1);
+        }
+        50% {
+            transform: scale(1.2); /* Scales the element up to 120% */
+        }
+        100% {
+            transform: scale(1);
+        }
+        }
 
+        /* A class to trigger the animation */
+        .score-pulse {
+        animation: scorePulse 0.4s ease-in-out;
+        }
         .score-controls {
             display: flex;
             justify-content: space-between;
@@ -572,6 +597,12 @@
                     views[key].classList.toggle('hidden', key !== viewKey);
                 }
                 
+                if (viewKey === 'active') { // lock the screen when set is active
+                    document.body.classList.add('no-scroll');
+                } else {
+                    document.body.classList.remove('no-scroll');
+                }
+
                 // Update page title and announce view change
                 let viewName;
                 switch(viewKey) {
@@ -766,6 +797,7 @@
 
             const handlePointWon = () => {
                 ourScore++;
+                triggerScoreAnimation(ourScoreEl);
                 if (!isServing) {
                     rotate();
                 }
@@ -777,6 +809,7 @@
             
             const handlePointLost = () => {
                 theirScore++;
+                triggerScoreAnimation(theirScoreEl); 
                 isServing = false;
                 renderCourtView();
                 announce(`Point lost. Opponent score: ${theirScore}. Opponent is serving.`);
@@ -989,6 +1022,18 @@
             // --- INITIALIZATION ---
             loadState();
         });
+
+        const triggerScoreAnimation = (element) => {
+            // Remove the class first to restart the animation if it's somehow still there
+            element.classList.remove('score-pulse');
+            // Add the class to trigger the animation defined in the CSS
+            element.classList.add('score-pulse');
+
+            // Listen for when the animation ends, then remove the class
+            element.addEventListener('animationend', () => {
+                element.classList.remove('score-pulse');
+            }, { once: true }); // { once: true } ensures the listener is removed after it runs
+        };
     </script>
 </body>
 </html>

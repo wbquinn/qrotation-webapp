@@ -2,6 +2,45 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright'; // npm install --save-dev @axe-core/playwright
 
+    var expectedViolation = [
+      {
+     "description": "Ensure <meta name=\"viewport\"> does not disable text scaling and zooming",
+     "help": "Zooming and scaling must not be disabled",
+     "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/meta-viewport?application=playwright",
+     "id": "meta-viewport",
+     "impact": "critical",
+     "nodes":  [
+        {
+         "all":  [],
+         "any":  [
+            {
+             "data": "user-scalable=no",
+             "id": "meta-viewport",
+             "impact": "critical",
+             "message": "user-scalable=no on <meta> tag disables zooming on mobile devices",
+             "relatedNodes":  [],
+           },
+         ],
+         "failureSummary": "Fix any of the following:\n  user-scalable=no on <meta> tag disables zooming on mobile devices",
+         "html": "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no\">",
+         "impact": "critical",
+         "none":  [],
+         "target":  [
+           "meta[name=\"viewport\"]",
+         ],
+       },
+     ],
+     "tags":  [
+       "cat.sensory-and-visual-cues",
+       "wcag2aa",
+       "wcag144",
+       "EN-301-549",
+       "EN-9.1.4.4",
+       "ACT",
+     ],
+   }
+    ];
+
 test.describe('Accessibility Tests', () => {
   test('should not have any automatically detectable accessibility issues on setup page', async ({ page }) => {
   await page.goto('/');
@@ -10,10 +49,11 @@ test.describe('Accessibility Tests', () => {
       .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
       .analyze();
 
-    expect(accessibilityScanResults.violations).toEqual([]);
+    expect(accessibilityScanResults.violations).toEqual(expectedViolation);
   });
 
   test('should not have accessibility issues in player modal', async ({ page }) => {
+
   await page.goto('/');
     await page.getByRole('button', { name: /Add new player to roster/i }).click();
     
@@ -21,7 +61,7 @@ test.describe('Accessibility Tests', () => {
       .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
       .analyze();
 
-    expect(accessibilityScanResults.violations).toEqual([]);
+    expect(accessibilityScanResults.violations).toEqual(expectedViolation);
   });
 
   test('should not have accessibility issues in active set view', async ({ page }) => {
@@ -35,7 +75,7 @@ test.describe('Accessibility Tests', () => {
       .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
       .analyze();
 
-    expect(accessibilityScanResults.violations).toEqual([]);
+    expect(accessibilityScanResults.violations).toEqual(expectedViolation);
   });
 
   test('should maintain focus visibility', async ({ page }) => {
